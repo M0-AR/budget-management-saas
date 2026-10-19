@@ -1,0 +1,37 @@
+# Caddy edge proxy for the Budget Management SaaS.
+#
+# Local dev:   SITE_ADDRESS defaults to http://localhost  (plain HTTP, port 80)
+# Production:  set SITE_ADDRESS=budget.example.com and Caddy provisions and
+#              renews Let's Encrypt TLS automatically over ports 80/443.
+#              For per-tenant custom domains, add one site block per domain
+#              that reverse_proxies to `frontend:80` (see docs/MULTI-TENANCY.md).
+
+{$SITE_ADDRESS:http://localhost} {
+	encode zstd gzip
+
+	# API + probes go straight to the backend
+	@api path /api/* /healthz /readyz
+	handle @api {
+		reverse_proxy backend:8000
+	}
+
+	# Everything else is the SPA
+	handle {
+		reverse_proxy frontend:80
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy camera=(), microphone=(), geolocation=()
+		# Only honored over HTTPS (production TLS sites); ignored otherwise.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

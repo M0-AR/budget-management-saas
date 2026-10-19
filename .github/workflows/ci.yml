@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: budget
+          POSTGRES_PASSWORD: budget-admin
+          POSTGRES_DB: budget
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U budget -d budget"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      DATABASE_URL: postgresql+asyncpg://budget_app:budget-app@localhost:5432/budget
+      JWT_SECRET: ci-only-secret-ci-only-secret-ci-only
+      ENVIRONMENT: development
+      SEED_DEMO: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Create non-superuser app role (the RLS boundary)
+        run: |
+          PGPASSWORD=budget-admin psql -h localhost -U budget -d budget -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE ROLE budget_app LOGIN PASSWORD 'budget-app';
+          GRANT CONNECT ON DATABASE budget TO budget_app;
+          GRANT USAGE, CREATE ON SCHEMA public TO budget_app;
+          SQL
+      - name: Apply migrations
+        run: alembic upgrade head
+      - name: Run tests
+        run: python -m pytest -q
+
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build

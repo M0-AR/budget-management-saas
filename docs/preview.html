@@ -1,0 +1,1523 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Budgetary — one platform, every team gets its own workspace</title>
+<meta name="description" content="A multi-tenant budgeting SaaS with database-enforced isolation, branded workspaces, budgets, reports, CSV import and roles. Tour the product, try the budget simulator and take the scratch-to-pro quiz.">
+<meta property="og:title" content="Budgetary — multi-tenant budgeting SaaS">
+<meta property="og:description" content="Every team gets its own branded, isolated workspace. Tour the product, try the simulator and learn how it works.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="./assets/shot-dashboard.png">
+<meta name="theme-color" content="#2f6df6">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f6df6'/%3E%3Cpath d='M8 21l6-11 4 7 6-9' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<script>
+  (function () {
+    try {
+      var stored = localStorage.getItem('budgetary-preview-theme');
+      var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.dataset.theme = stored || (dark ? 'dark' : 'light');
+    } catch (e) {}
+  })();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f6f7fb;
+    --surface: #ffffff;
+    --surface-2: #eef1f8;
+    --surface-3: #e5eaf5;
+    --text: #0d1424;
+    --muted: #5a6478;
+    --line: #e0e5f0;
+    --accent: #2f6df6;
+    --accent-2: #4f46e5;
+    --accent-soft: #e8efff;
+    --good: #138a4a;
+    --good-soft: #ddf5e7;
+    --warn: #b45309;
+    --warn-soft: #fdf0d5;
+    --bad: #c02626;
+    --bad-soft: #fde4e4;
+    --shadow: 0 24px 60px -30px rgba(15, 30, 70, .35);
+    --shadow-sm: 0 10px 30px -18px rgba(15, 30, 70, .35);
+    --radius: 20px;
+    --max: 1180px;
+    --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #070b16;
+    --surface: #0e1526;
+    --surface-2: #131c31;
+    --surface-3: #1b2742;
+    --text: #eef2fb;
+    --muted: #9aa6bf;
+    --line: #223050;
+    --accent: #6b96ff;
+    --accent-2: #8b87ff;
+    --accent-soft: #17264a;
+    --good: #4ade80;
+    --good-soft: #0f2f22;
+    --warn: #fbbf24;
+    --warn-soft: #33270b;
+    --bad: #f87171;
+    --bad-soft: #3a1418;
+    --shadow: 0 30px 80px -40px rgba(0, 0, 0, .9);
+    --shadow-sm: 0 12px 34px -20px rgba(0, 0, 0, .8);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  section[id] { scroll-margin-top: 88px; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 16.5px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  img, video { max-width: 100%; display: block; }
+  a { color: var(--accent); text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+  a:hover { color: var(--accent-2); }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+  .skip {
+    position: absolute; left: 12px; top: -60px; z-index: 100;
+    background: var(--surface); color: var(--text); padding: 10px 16px;
+    border-radius: 10px; border: 1px solid var(--line); text-decoration: none;
+  }
+  .skip:focus { top: 12px; }
+  .wrap { width: min(calc(100% - 40px), var(--max)); margin-inline: auto; }
+  section { padding: 84px 0; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: .74rem; font-weight: 800; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--accent);
+    margin: 0 0 16px;
+  }
+  .eyebrow::before { content: ""; width: 26px; height: 2px; border-radius: 2px; background: var(--accent); }
+  h1, h2, h3 { line-height: 1.12; letter-spacing: -.025em; margin: 0; }
+  h1 { font-size: clamp(2.5rem, 5.2vw, 4rem); font-weight: 800; }
+  h2 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; }
+  h3 { font-size: 1.18rem; font-weight: 700; letter-spacing: -.01em; }
+  p { margin: 0 0 1em; }
+  .lede { font-size: clamp(1.05rem, 1.6vw, 1.24rem); color: var(--muted); max-width: 62ch; }
+  .muted { color: var(--muted); }
+  .grad {
+    background: linear-gradient(100deg, var(--accent) 10%, var(--accent-2) 55%, #8b5cf6 90%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .header {
+    position: sticky; top: 0; z-index: 50;
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: saturate(140%) blur(14px);
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  }
+  .nav { display: flex; align-items: center; gap: 28px; height: 68px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: -.02em; color: var(--text); text-decoration: none; font-size: 1.06rem; }
+  .brand svg { width: 30px; height: 30px; }
+  .nav-links { display: flex; align-items: center; gap: 24px; margin-left: auto; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: .92rem; font-weight: 600; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta { margin-left: 4px; }
+  .icon-btn {
+    display: inline-grid; place-items: center; width: 40px; height: 40px;
+    border-radius: 12px; border: 1px solid var(--line); background: var(--surface);
+    cursor: pointer; transition: background .2s, transform .2s;
+  }
+  .icon-btn:hover { background: var(--surface-2); transform: translateY(-1px); }
+  .icon-btn svg { width: 18px; height: 18px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+    padding: 13px 22px; border-radius: 13px; border: 1px solid transparent;
+    font-weight: 700; font-size: .95rem; text-decoration: none; cursor: pointer;
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow: 0 14px 30px -14px color-mix(in srgb, var(--accent) 70%, transparent);
+  }
+  .btn-primary:hover { color: #fff; transform: translateY(-2px); box-shadow: 0 18px 36px -14px color-mix(in srgb, var(--accent) 80%, transparent); }
+  .btn-ghost { background: var(--surface); border-color: var(--line); color: var(--text); }
+  .nav-links a.nav-cta, .nav-links a.nav-cta:hover { color: #fff; }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--text); transform: translateY(-2px); }
+  .btn-sm { padding: 9px 15px; font-size: .86rem; border-radius: 10px; }
+  .hero { position: relative; overflow: clip; padding: 72px 0 64px; }
+  .hero::before {
+    content: ""; position: absolute; inset: -20% -10% auto; height: 640px;
+    background:
+      radial-gradient(46% 60% at 22% 30%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
+      radial-gradient(40% 55% at 82% 18%, color-mix(in srgb, #8b5cf6 13%, transparent), transparent 72%);
+    pointer-events: none;
+  }
+  .hero-grid { position: relative; display: grid; grid-template-columns: 1.12fr 1fr; gap: 44px; align-items: center; }
+  .hero p { max-width: 54ch; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 28px 0 22px; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 18px; color: var(--muted); font-size: .86rem; font-weight: 600; }
+  .hero-meta span { display: inline-flex; align-items: center; gap: 7px; }
+  .hero-meta svg { width: 15px; height: 15px; color: var(--good); }
+  .browser {
+    border-radius: 18px; border: 1px solid var(--line); overflow: hidden;
+    background: var(--surface); box-shadow: var(--shadow);
+  }
+  .browser-bar {
+    display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+    background: var(--surface-2); border-bottom: 1px solid var(--line);
+  }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+  .dots i:nth-child(1) { background: #f87171; } .dots i:nth-child(2) { background: #fbbf24; } .dots i:nth-child(3) { background: #34d399; }
+  .url {
+    flex: 1; text-align: center; font-family: var(--mono); font-size: .7rem;
+    color: var(--muted); background: var(--surface); border: 1px solid var(--line);
+    border-radius: 8px; padding: 3px 10px; max-width: 280px; margin-inline: auto;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .browser video { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; background: var(--surface-2); }
+  .hero-caption { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; font-size: .76rem; color: var(--muted); }
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow-sm); overflow: hidden;
+  }
+  .stat { padding: 26px 24px; border-left: 1px solid var(--line); }
+  .stat:first-child { border-left: 0; }
+  .stat strong { display: block; font-size: 1.7rem; letter-spacing: -.03em; line-height: 1.1; }
+  .stat span { font-size: .8rem; color: var(--muted); font-weight: 600; }
+  .section-head { max-width: 760px; margin-bottom: 48px; }
+  .section-head p { margin-top: 14px; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 26px; box-shadow: var(--shadow-sm);
+  }
+  .card .icon {
+    width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center;
+    background: var(--accent-soft); color: var(--accent); margin-bottom: 18px;
+  }
+  .card .icon svg { width: 21px; height: 21px; }
+  .card h3 { margin-bottom: 8px; }
+  .card p { margin: 0; color: var(--muted); font-size: .93rem; }
+  .feature { display: grid; grid-template-columns: 1fr 1.12fr; gap: 56px; align-items: center; padding: 44px 0; border-top: 1px solid var(--line); }
+  .feature:first-of-type { border-top: 0; }
+  .feature.reverse .feature-media { order: 2; }
+  .feature h3 { font-size: clamp(1.5rem, 2.6vw, 2rem); margin-bottom: 14px; }
+  .feature p { color: var(--muted); }
+  .checks { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 9px; }
+  .checks li { display: flex; gap: 10px; font-size: .93rem; }
+  .checks svg { width: 18px; height: 18px; flex: 0 0 auto; color: var(--good); margin-top: 2px; }
+  .media-frame {
+    border-radius: 16px; border: 1px solid var(--line); overflow: hidden;
+    background: var(--surface); box-shadow: var(--shadow);
+  }
+  .media-frame img { width: 100%; height: auto; }
+  .split-note {
+    margin-top: 8px; font-size: .74rem; color: var(--muted); text-align: right;
+  }
+  .security-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .security-grid .card { padding: 22px; }
+  .security-grid h3 { font-size: 1rem; margin-bottom: 6px; }
+  .security-grid p { font-size: .85rem; }
+  .flow {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 12px;
+  }
+  .flow-step {
+    position: relative; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; padding: 20px; box-shadow: var(--shadow-sm);
+  }
+  .flow-step::after {
+    content: "→"; position: absolute; right: -13px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-weight: 800; z-index: 2;
+  }
+  .flow-step:last-child::after { content: ""; }
+  .flow-step b { display: block; font-size: .92rem; margin-bottom: 4px; }
+  .flow-step span { font-size: .8rem; color: var(--muted); line-height: 1.45; display: block; }
+  .flow-note {
+    margin-top: 18px; background: var(--surface-2); border: 1px dashed var(--line);
+    border-radius: 12px; padding: 14px 18px; font-size: .85rem; color: var(--muted);
+  }
+  .flow-note code { color: var(--text); }
+  .sim { display: grid; grid-template-columns: 1fr 1.05fr; gap: 40px; align-items: start; }
+  .sim-controls {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 28px; box-shadow: var(--shadow-sm);
+  }
+  .sim-row { margin-bottom: 22px; }
+  .sim-row:last-child { margin-bottom: 0; }
+  .sim-row label { display: flex; justify-content: space-between; gap: 16px; font-size: .88rem; font-weight: 700; margin-bottom: 9px; }
+  .sim-row output { font-family: var(--mono); font-size: .84rem; color: var(--accent); font-weight: 700; }
+  input[type="range"] {
+    -webkit-appearance: none; appearance: none; width: 100%; height: 6px;
+    border-radius: 99px; background: var(--surface-3); outline-offset: 6px; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border: 3px solid var(--surface); box-shadow: 0 2px 8px rgba(20,40,90,.35);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--accent); border: 3px solid var(--surface); box-shadow: 0 2px 8px rgba(20,40,90,.35);
+  }
+  .sim-hint { margin: 16px 0 0; font-size: .78rem; color: var(--muted); }
+  .mock {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 28px; box-shadow: var(--shadow);
+  }
+  .mock-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+  .mock-top h3 { font-size: 1.02rem; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px;
+    border-radius: 99px; font-size: .73rem; font-weight: 800; letter-spacing: .01em;
+  }
+  .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .pill.good { color: var(--good); background: var(--good-soft); }
+  .pill.warn { color: var(--warn); background: var(--warn-soft); }
+  .pill.bad { color: var(--bad); background: var(--bad-soft); }
+  .mock-sub { font-size: .76rem; color: var(--muted); margin-bottom: 16px; }
+  .mock-amount { font-size: clamp(2rem, 3.2vw, 2.7rem); font-weight: 800; letter-spacing: -.04em; line-height: 1; }
+  .mock-amount small { font-size: .9rem; color: var(--muted); font-weight: 600; letter-spacing: 0; }
+  .bar { height: 10px; border-radius: 99px; background: var(--surface-3); overflow: hidden; margin: 18px 0 10px; }
+  .bar i { display: block; height: 100%; border-radius: inherit; width: 40%; transition: width .35s ease, background .35s ease; background: var(--good); }
+  .bar-labels { display: flex; justify-content: space-between; font-size: .7rem; color: var(--muted); font-weight: 600; }
+  .mock-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
+  .mock-cell { background: var(--surface-2); border-radius: 12px; padding: 12px 14px; }
+  .mock-cell span { display: block; font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .mock-cell strong { font-size: .98rem; letter-spacing: -.01em; }
+  .pace-note { margin: 18px 0 0; font-size: .82rem; color: var(--muted); min-height: 2.6em; }
+  .pace-note b { color: var(--text); }
+  .buyer-panel {
+    display: grid; grid-template-columns: 1.02fr .98fr; gap: 40px; align-items: center;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 26px;
+    padding: clamp(26px, 4.5vw, 46px); box-shadow: var(--shadow);
+  }
+  .buyer-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 24px; }
+  .buyer-facts div { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .buyer-facts strong { display: block; font-size: 1.25rem; letter-spacing: -.03em; }
+  .buyer-facts span { font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .calc { background: var(--surface-2); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+  .calc h3 { font-size: 1rem; margin-bottom: 4px; }
+  .calc > p { font-size: .78rem; color: var(--muted); margin-bottom: 18px; }
+  .calc-row { margin-bottom: 15px; }
+  .calc-row label { display: flex; justify-content: space-between; gap: 12px; font-size: .82rem; font-weight: 700; margin-bottom: 7px; }
+  .calc-row output { font-family: var(--mono); font-size: .8rem; color: var(--accent); font-weight: 700; }
+  .calc-out { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 18px; }
+  .calc-out div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .calc-out span { display: block; font-size: .62rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-weight: 800; margin-bottom: 3px; }
+  .calc-out strong { font-size: clamp(.92rem, 1.4vw, 1.12rem); letter-spacing: -.02em; }
+  .calc-note { font-size: .7rem; color: var(--muted); margin: 12px 0 0; }
+  .learn-head { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin: 24px 0 16px; }
+  .learn-progress { flex: 1 1 220px; height: 8px; border-radius: 99px; background: var(--surface-3); overflow: hidden; }
+  .learn-progress i { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--good), var(--accent)); transition: width .3s ease; }
+  .learn-count { font-size: .76rem; font-weight: 800; color: var(--muted); }
+  .learn-reset { background: none; border: 0; color: var(--accent); font-size: .74rem; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .path { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .path-step {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 20px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow-sm);
+    transition: border-color .2s ease, background .2s ease;
+  }
+  .path-step.done { border-color: var(--good); background: color-mix(in srgb, var(--good-soft) 45%, var(--surface)); }
+  .path-num { font-family: var(--mono); font-size: .68rem; font-weight: 800; color: var(--accent); letter-spacing: .1em; }
+  .path-step.done .path-num { color: var(--good); }
+  .path-step h3 { font-size: .98rem; line-height: 1.3; }
+  .path-step p { font-size: .8rem; color: var(--muted); margin: 0; flex: 1; }
+  .path-step a { font-size: .76rem; font-weight: 700; }
+  .path-done {
+    align-self: flex-start; border: 1px solid var(--line); background: var(--surface-2);
+    border-radius: 99px; padding: 6px 12px; font-size: .72rem; font-weight: 800;
+    cursor: pointer; transition: background .2s, border-color .2s, color .2s;
+  }
+  .path-done:hover { border-color: var(--accent); color: var(--accent); }
+  .path-step.done .path-done { background: var(--good); border-color: var(--good); color: #fff; }
+  .path-ready {
+    display: none; margin-top: 16px; padding: 13px 16px; border-radius: 12px;
+    background: var(--good-soft); color: var(--good); font-size: .85rem; font-weight: 700;
+  }
+  .path-ready.show { display: block; }
+  .path-ready a { color: inherit; }
+  .quiz-wrap { display: grid; grid-template-columns: .82fr 1.18fr; gap: 44px; align-items: start; }
+  .quiz-side { position: sticky; top: 96px; }
+  .quiz-side .lede { font-size: 1rem; }
+  .rank-list { list-style: none; padding: 0; margin: 26px 0 0; display: grid; gap: 10px; }
+  .rank-list li { display: flex; gap: 10px; font-size: .86rem; color: var(--muted); }
+  .rank-list b { color: var(--text); }
+  .quiz {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 30px; box-shadow: var(--shadow); min-height: 430px;
+  }
+  .quiz-progress { height: 7px; border-radius: 99px; background: var(--surface-3); overflow: hidden; margin-bottom: 10px; }
+  .quiz-progress i { display: block; height: 100%; width: 10%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .3s ease; }
+  .quiz-meta { display: flex; justify-content: space-between; font-size: .74rem; font-weight: 700; color: var(--muted); margin-bottom: 20px; }
+  .quiz h3 { font-size: clamp(1.18rem, 2vw, 1.42rem); line-height: 1.3; margin-bottom: 20px; }
+  .options { display: grid; gap: 10px; }
+  .option {
+    text-align: left; width: 100%; padding: 14px 16px; border-radius: 12px;
+    border: 1px solid var(--line); background: var(--surface-2); cursor: pointer;
+    font-size: .92rem; font-weight: 600; line-height: 1.4; transition: border-color .18s, background .18s, transform .18s;
+  }
+  .option:hover:not(:disabled) { border-color: var(--accent); transform: translateX(2px); }
+  .option:disabled { cursor: default; }
+  .option.correct { border-color: var(--good); background: var(--good-soft); color: var(--good); }
+  .option.wrong { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+  .option.dim { opacity: .55; }
+  .why { margin-top: 18px; padding: 14px 16px; border-radius: 12px; background: var(--surface-2); border-left: 3px solid var(--accent); font-size: .87rem; color: var(--muted); }
+  .why b { color: var(--text); }
+  .quiz-actions { display: flex; justify-content: flex-end; margin-top: 20px; }
+  .result { text-align: center; padding: 6px 0 0; }
+  .ring {
+    width: 138px; height: 138px; border-radius: 50%; margin: 6px auto 18px;
+    display: grid; place-items: center; position: relative;
+    background: conic-gradient(var(--accent) calc(var(--score) * 1%), var(--surface-3) 0);
+  }
+  .ring::before { content: ""; position: absolute; inset: 10px; border-radius: 50%; background: var(--surface); }
+  .ring strong { position: relative; font-size: 2rem; letter-spacing: -.04em; }
+  .ring strong small { font-size: .85rem; color: var(--muted); font-weight: 600; }
+  .result h3 { font-size: 1.6rem; margin-bottom: 8px; }
+  .result p { color: var(--muted); font-size: .92rem; max-width: 42ch; margin-inline: auto; }
+  .review { text-align: left; margin-top: 18px; border-top: 1px solid var(--line); padding-top: 16px; display: grid; gap: 10px; }
+  .review div { font-size: .83rem; color: var(--muted); }
+  .review b { color: var(--text); }
+  .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .shot {
+    margin: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+    background: var(--surface); cursor: zoom-in; box-shadow: var(--shadow-sm);
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .shot:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+  .shot img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
+  .shot.tall img { object-fit: contain; background: var(--surface-2); }
+  .shot figcaption { padding: 11px 14px; font-size: .78rem; color: var(--muted); font-weight: 600; }
+  dialog#lightbox {
+    border: 0; padding: 0; background: transparent; max-width: min(94vw, 1180px);
+    width: 100%; color: var(--text);
+  }
+  dialog#lightbox::backdrop { background: rgba(4, 8, 18, .78); backdrop-filter: blur(4px); }
+  .lightbox-inner { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow); }
+  .lightbox-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  .lightbox-top span { font-size: .8rem; font-weight: 700; color: var(--muted); }
+  .lightbox-img { width: 100%; max-height: 74vh; object-fit: contain; background: var(--surface-2); }
+  .lightbox-caption { padding: 12px 16px; font-size: .82rem; color: var(--muted); }
+  .lightbox-nav { display: flex; gap: 8px; }
+  .faq { display: grid; gap: 10px; max-width: 900px; }
+  details {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px 20px; box-shadow: var(--shadow-sm);
+  }
+  details[open] { border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
+  summary { cursor: pointer; font-weight: 700; font-size: .96rem; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; color: var(--accent); font-size: 1.2rem; line-height: 1; }
+  details[open] summary::after { content: "–"; }
+  details p { margin: 12px 0 0; color: var(--muted); font-size: .9rem; max-width: 80ch; }
+  .get { position: relative; overflow: clip; }
+  .get-panel {
+    display: grid; grid-template-columns: 1.05fr .95fr; gap: 44px; align-items: center;
+    background:
+      radial-gradient(70% 120% at 0% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
+      linear-gradient(150deg, #0c1428, #111c3a 60%, #0b1226);
+    color: #f2f5ff; border-radius: 26px; padding: clamp(28px, 5vw, 54px);
+    box-shadow: var(--shadow); border: 1px solid #243357;
+  }
+  .get-panel h2 { color: #fff; }
+  .get-panel p { color: #b8c3dd; }
+  .get-panel .eyebrow { color: #8fb0ff; }
+  .terminal {
+    background: #070d1c; border: 1px solid #26355a; border-radius: 14px; overflow: hidden;
+    box-shadow: 0 20px 50px -20px rgba(0,0,0,.7);
+  }
+  .terminal-bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #0c1730; border-bottom: 1px solid #1e2b4b; }
+  .terminal-bar span { margin-left: auto; font-family: var(--mono); font-size: .68rem; color: #7d8bab; }
+  .terminal pre { margin: 0; padding: 18px; overflow-x: auto; font-family: var(--mono); font-size: .78rem; line-height: 1.75; color: #d7e2ff; }
+  .terminal .cmt { color: #7d8bab; }
+  .terminal .cmd { color: #9ec1ff; }
+  .copy {
+    margin-top: 10px; width: 100%; padding: 10px; border-radius: 9px; cursor: pointer;
+    background: #12203d; border: 1px solid #26355a; color: #c9d7f5; font-size: .78rem; font-weight: 700;
+  }
+  .copy:hover { background: #17294c; }
+  .cred { margin-top: 16px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .cred div { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 10px 12px; }
+  .cred span { display: block; font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; color: #8fa1c5; font-weight: 800; }
+  .cred code { font-family: var(--mono); font-size: .8rem; color: #e7eeff; }
+  .pages-note { font-size: .76rem; color: #8fa1c5; margin-top: 16px; }
+  .pages-note a { color: #a9c4ff; }
+  footer { border-top: 1px solid var(--line); padding: 34px 0 46px; color: var(--muted); font-size: .82rem; }
+  .foot { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; justify-content: space-between; }
+  .foot-links { display: flex; flex-wrap: wrap; gap: 18px; }
+  .foot-links a { color: var(--muted); text-decoration: none; }
+  .foot-links a:hover { color: var(--text); }
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; } }
+  @media (max-width: 1000px) {
+    .hero-grid, .sim, .quiz-wrap, .buyer-panel { grid-template-columns: 1fr; gap: 34px; }
+    .quiz-side { position: static; }
+    .path { grid-template-columns: repeat(2, 1fr); }
+    .feature { grid-template-columns: 1fr; gap: 26px; }
+    .feature.reverse .feature-media { order: 0; }
+    .cards, .gallery { grid-template-columns: repeat(2, 1fr); }
+    .security-grid, .flow { grid-template-columns: repeat(2, 1fr); }
+    .flow-step:nth-child(2)::after { content: ""; }
+    .get-panel { grid-template-columns: 1fr; }
+    .nav-links a:not(.nav-keep) { display: none; }
+  }
+  @media (max-width: 640px) {
+    section { padding: 58px 0; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(3) { border-left: 0; }
+    .stat { border-top: 1px solid var(--line); }
+    .stat:nth-child(1), .stat:nth-child(2) { border-top: 0; }
+    .cards, .security-grid, .flow, .gallery, .mock-grid, .path { grid-template-columns: 1fr; }
+    .buyer-facts, .calc-out { grid-template-columns: 1fr; }
+    .buyer-panel { padding: 22px; }
+    .hero { padding-top: 48px; }
+    .hero-actions .btn { flex: 1 1 100%; }
+    .nav { gap: 12px; }
+    .brand span { display: none; }
+    .nav-links { gap: 8px; }
+    .cred { grid-template-columns: 1fr; }
+    .flow-step::after { content: ""; }
+    .quiz { padding: 22px; }
+    .sim-controls, .mock { padding: 22px; }
+    .split-note { text-align: left; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print { .reveal { opacity: 1 !important; transform: none !important; } }
+</style>
+<noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-mark" viewBox="0 0 32 32">
+    <rect x="1" y="1" width="30" height="30" rx="9" fill="url(#gmark)"/>
+    <path d="M9 21V13.5M16 21V9M23 21v-5" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+    <defs><linearGradient id="gmark" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#2f6df6"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
+  </symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.2c0 4.6 3.2 8.3 7.5 9.8 4.3-1.5 7.5-5.2 7.5-9.8V6L12 3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m8.8 11.8 2.2 2.2 4.3-4.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M16.5 14.5h1.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V4M4 20h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 16v-5M12.6 16V8M17.2 16v-3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 19c.5-3.1 2.7-4.8 5.5-4.8s5 1.7 5.5 4.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M15.5 6.2a3 3 0 0 1 0 5.8M17 14.6c2.1.4 3.3 2 3.6 4.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6V3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 3v4h4M9 12h6M9 16h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18h1.6a1.9 1.9 0 0 0 0-3.8h-.8a1.9 1.9 0 0 1 0-3.8H16A5 5 0 0 0 21 8.4C21 5.4 17 3 12 3Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="7.8" cy="9" r="1.2" fill="currentColor"/><circle cx="11" cy="6.6" r="1.2" fill="currentColor"/><circle cx="15" cy="7.2" r="1.2" fill="currentColor"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5 5l1.4 1.4M17.6 17.6 19 19M19 5l-1.4 1.4M6.4 17.6 5 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+</svg>
+
+<header class="header">
+  <div class="wrap nav">
+    <a class="brand" href="#top" aria-label="Budgetary home">
+      <svg aria-hidden="true"><use href="#i-mark"/></svg>
+      <span>Budgetary</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#product">Product</a>
+      <a href="#buyers" class="nav-keep">Buyers</a>
+      <a href="#tour">Tour</a>
+      <a href="#simulator">Simulator</a>
+      <a href="#quiz" class="nav-keep">Quiz</a>
+      <a href="#faq">FAQ</a>
+      <a class="btn btn-primary btn-sm nav-cta nav-keep" href="#get-started">Get started</a>
+    </nav>
+    <button class="icon-btn" id="theme" type="button" aria-label="Switch to dark theme" aria-pressed="false">
+      <svg aria-hidden="true"><use href="#i-sun" id="theme-icon"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" id="top">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">Multi-tenant budgeting SaaS</p>
+        <h1>Every team.<br>One platform.<br><span class="grad">Zero shared data.</span></h1>
+        <p class="lede" style="margin-top:22px">A complete budgeting workspace for households and small teams — budgets, expenses, reports and CSV tools — with its own people, roles, currency, branding and database-enforced privacy.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#tour">See the product <span aria-hidden="true">↓</span></a>
+          <a class="btn btn-ghost" href="#simulator">Try the simulator</a>
+        </div>
+        <div class="hero-meta">
+          <span><svg aria-hidden="true"><use href="#i-check"/></svg>Docker Compose</span>
+          <span><svg aria-hidden="true"><use href="#i-check"/></svg>No API keys</span>
+          <span><svg aria-hidden="true"><use href="#i-check"/></svg>MIT licensed</span>
+        </div>
+      </div>
+      <div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="url">localhost &nbsp;·&nbsp; demo workspace</span>
+            <span style="width:33px"></span>
+          </div>
+          <video autoplay loop muted playsinline poster="./assets/shot-dashboard.png" aria-label="Screen recording of the Budgetary demo workspace">
+            <source src="./assets/demo.mp4" type="video/mp4">
+            <img src="./assets/shot-dashboard.png" alt="Budgetary dashboard">
+          </video>
+        </div>
+        <div class="hero-caption">
+          <span>Recorded from the seeded demo — <a href="./assets/demo.mp4">open the full video</a>.</span>
+          <span>20 sec</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="stats reveal">
+      <div class="stat"><strong>4</strong><span>containers, one command</span></div>
+      <div class="stat"><strong>38</strong><span>backend tests, including isolation</span></div>
+      <div class="stat"><strong>10</strong><span>multi-tenancy patterns mapped</span></div>
+      <div class="stat"><strong>4</strong><span>roles enforced by the API</span></div>
+    </div>
+  </div>
+
+  <section id="product">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow">Why it exists</p>
+        <h2>Most budgeting tools are built for one person. This one is built for a workspace.</h2>
+        <p class="lede">Shared money is a coordination problem. Budgetary gives every household or team a private home for the numbers, then makes the shared parts obvious: who spent what, how the month is tracking, and who is allowed to change it.</p>
+      </div>
+      <div class="cards">
+        <article class="card reveal">
+          <div class="icon"><svg aria-hidden="true"><use href="#i-wallet"/></svg></div>
+          <h3>For the person who tracks it</h3>
+          <p>Add an expense in seconds, search it later, and see the whole month on one dashboard. No spreadsheet formulas, no reconciliation rituals.</p>
+        </article>
+        <article class="card reveal">
+          <div class="icon"><svg aria-hidden="true"><use href="#i-users"/></svg></div>
+          <h3>For the people who share it</h3>
+          <p>Invite a partner or teammate with their own login. Owners, admins, members and viewers each see exactly the controls they should.</p>
+        </article>
+        <article class="card reveal">
+          <div class="icon"><svg aria-hidden="true"><use href="#i-shield"/></svg></div>
+          <h3>For the data behind it</h3>
+          <p>Each workspace is isolated by PostgreSQL row-level security — enforced by the database, proven by tests, invisible to the people using it.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="buyers" style="padding-top:20px">
+    <div class="wrap">
+      <div class="buyer-panel reveal">
+        <div>
+          <p class="eyebrow">For buyers</p>
+          <h2>A budget tool with a business case.</h2>
+          <p class="lede" style="margin-top:14px">MIT licensed. No seat fees. No usage meter. Your data stays on your server. The demo is the evaluation; the source is the due diligence.</p>
+          <div class="buyer-facts">
+            <div><strong>$0</strong><span>licence fees</span></div>
+            <div><strong>1</strong><span>server to run it</span></div>
+            <div><strong>4</strong><span>roles enforced</span></div>
+          </div>
+          <div class="hero-actions" style="margin-bottom:0">
+            <a class="btn btn-primary" href="#get-started">Run the demo</a>
+            <a class="btn btn-ghost" href="./BUSINESS-CASE.md">Read the business case</a>
+          </div>
+        </div>
+        <div class="calc">
+          <h3>What is the current routine costing?</h3>
+          <p>Use your own numbers. This is arithmetic, not a claimed saving.</p>
+          <div class="calc-row">
+            <label for="calc-people">People touching the budget <output id="calc-people-out" for="calc-people">4</output></label>
+            <input type="range" id="calc-people" min="1" max="20" step="1" value="4">
+          </div>
+          <div class="calc-row">
+            <label for="calc-hours">Hours per person, per month <output id="calc-hours-out" for="calc-hours">3</output></label>
+            <input type="range" id="calc-hours" min="1" max="15" step="1" value="3">
+          </div>
+          <div class="calc-row">
+            <label for="calc-rate">Fully loaded hourly cost <output id="calc-rate-out" for="calc-rate">$45</output></label>
+            <input type="range" id="calc-rate" min="15" max="150" step="5" value="45">
+          </div>
+          <div class="calc-out" aria-live="polite">
+            <div><span>Hours / month</span><strong id="calc-total-hours">12</strong></div>
+            <div><span>Cost / month</span><strong id="calc-monthly">$540</strong></div>
+            <div><span>Cost / year</span><strong id="calc-annual">$6,480</strong></div>
+          </div>
+          <p class="calc-note">The routine — duplicate entry, status chasing, month-end rebuilding — is what Budgetary is designed to replace. Your actual result depends on your process.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tour" style="padding-top:20px">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow">Product tour</p>
+        <h2>Numbers that answer the question you actually have.</h2>
+        <p class="lede">Not just “what did I spend” — but “am I okay?” Budgetary compares the month with the plan, explains the gap in plain language, and keeps the details one click away.</p>
+      </div>
+
+      <div class="feature reveal">
+        <div>
+          <h3>The month in one glance</h3>
+          <p>Spent, remaining, utilisation, income and a six-month trend share a single screen. Status colours and text labels agree, so the dashboard works in light, dark and grayscale.</p>
+          <ul class="checks">
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Over / approaching / on-track status, never colour alone</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Spending by category with real shares</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Currency and date formatting per workspace</li>
+          </ul>
+        </div>
+        <div class="feature-media">
+          <div class="media-frame"><img src="./assets/shot-dashboard.png" loading="lazy" alt="Budgetary dashboard showing an over-budget month"></div>
+          <p class="split-note">Demo: $3,297.56 spent of $3,150 · 104.7%</p>
+        </div>
+      </div>
+
+      <div class="feature reverse reveal">
+        <div>
+          <h3>Budgets that speak human</h3>
+          <p>A budget is one monthly limit, an alert threshold and a pace line. On day 19 of 31, the app shows what you should have spent by now — and exactly how far ahead or behind you are.</p>
+          <ul class="checks">
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>On-track, approaching and over-budget states</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Alert threshold per workspace</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Undo a mistyped limit from the toast</li>
+          </ul>
+        </div>
+        <div class="feature-media">
+          <div class="media-frame"><img src="./assets/shot-budgets.png" loading="lazy" alt="Budgets page with pace line and monthly plan"></div>
+        </div>
+      </div>
+
+      <div class="feature reveal">
+        <div>
+          <h3>Reports without the spreadsheet</h3>
+          <p>Monthly and yearly views break spending down by category, compare income with expenses across six months, and export a clean CSV. The math happens in SQL; the browser only formats it.</p>
+          <ul class="checks">
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Category shares and budget performance</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Six-month trend with readable axes</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Formula-injection-safe CSV export</li>
+          </ul>
+        </div>
+        <div class="feature-media">
+          <div class="media-frame"><img src="./assets/shot-reports.png" loading="lazy" alt="Reports page with category breakdown and budget performance"></div>
+        </div>
+      </div>
+
+      <div class="feature reverse reveal">
+        <div>
+          <h3>One workspace, many people</h3>
+          <p>Invite by link, choose a role, revoke a pending invite. Each person gets their own login and sees the same workspace through the permissions you gave them. Owners can’t be removed; nobody can change their own role.</p>
+          <ul class="checks">
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Separate logins, one shared budget</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Viewer role is read-only in UI and API</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Invite tokens are single-use and email-bound</li>
+          </ul>
+        </div>
+        <div class="feature-media">
+          <div class="media-frame"><img src="./assets/shot-settings-members.png" loading="lazy" alt="Members tab with roles, invite link and pending invitations"></div>
+        </div>
+      </div>
+
+      <div class="feature reveal">
+        <div>
+          <h3>Bring your history with you</h3>
+          <p>Import the CSV you already have — or the one this app exported. Unknown categories are created, duplicates are skipped, and bad rows come back with line numbers instead of failing the whole file.</p>
+          <ul class="checks">
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Mixed expense and income files</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Common date formats, `$`, commas and header aliases</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Row-level errors, 1 MiB / 1,000 row guards</li>
+          </ul>
+        </div>
+        <div class="feature-media">
+          <div class="media-frame"><img src="./assets/shot-expenses.png" loading="lazy" alt="Expenses page with filters, search, export and import"></div>
+        </div>
+      </div>
+
+      <div class="feature reverse reveal">
+        <div>
+          <h3>Your brand before your first click</h3>
+          <p>Each workspace owns a display name, accent colour, logo, currency, locale and timezone. A public slug lookup themes the sign-in page before authentication — with only the fields that are safe to show.</p>
+          <ul class="checks">
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Validated accent colour, injected as a CSS variable</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Login page, sidebar and headers follow the brand</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Light and dark themes, responsive to 390 px</li>
+          </ul>
+        </div>
+        <div class="feature-media">
+          <div class="media-frame"><img src="./assets/shot-login-branded.png" loading="lazy" alt="Sign-in page themed for the Demo Budget workspace"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="security" style="padding-top:10px">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow">Built to be trusted</p>
+        <h2>Isolation is a database rule, not a promise in a README.</h2>
+      </div>
+      <div class="security-grid">
+        <article class="card reveal">
+          <div class="icon"><svg aria-hidden="true"><use href="#i-shield"/></svg></div>
+          <h3>Forced RLS</h3>
+          <p>Every tenant table is protected by row-level security. A non-superuser app role and per-transaction tenant context close the gaps application code forgets.</p>
+        </article>
+        <article class="card reveal">
+          <div class="icon"><svg aria-hidden="true"><use href="#i-check"/></svg></div>
+          <h3>Rotating sessions</h3>
+          <p>Short-lived access tokens live in memory. Refresh tokens rotate, are hashed at rest, travel in HttpOnly cookies, and revoke their family on reuse.</p>
+        </article>
+        <article class="card reveal">
+          <div class="icon"><svg aria-hidden="true"><use href="#i-chart"/></svg></div>
+          <h3>Fair-use limits</h3>
+          <p>A sliding window is keyed per tenant when authenticated, per IP otherwise. Credential endpoints get a stricter budget and a clear 429.</p>
+        </article>
+        <article class="card reveal">
+          <div class="icon"><svg aria-hidden="true"><use href="#i-file"/></svg></div>
+          <h3>Audit trail</h3>
+          <p>Logins, money changes, imports, category creation, invites and branding updates are appended per tenant — the story of who changed what.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="simulator" style="padding-top:24px">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow">Interactive</p>
+        <h2>Move the numbers. Watch the month change.</h2>
+        <p class="lede">This is the same logic the dashboard uses: utilisation against the limit, the alert threshold, and where spending should be by today. Nothing here is saved.</p>
+      </div>
+      <div class="sim reveal">
+        <div class="sim-controls">
+          <div class="sim-row">
+            <label for="sim-budget">Monthly budget <output id="out-budget" for="sim-budget">$3,150</output></label>
+            <input type="range" id="sim-budget" min="500" max="8000" step="50" value="3150">
+          </div>
+          <div class="sim-row">
+            <label for="sim-spent">Spent so far <output id="out-spent" for="sim-spent">$3,297.56</output></label>
+            <input type="range" id="sim-spent" min="0" max="10000" step="0.01" value="3297.56">
+          </div>
+          <div class="sim-row">
+            <label for="sim-alert">Alert threshold <output id="out-alert" for="sim-alert">80%</output></label>
+            <input type="range" id="sim-alert" min="50" max="100" step="5" value="80">
+          </div>
+          <div class="sim-row">
+            <label for="sim-day">Day of month <output id="out-day" for="sim-day">19 of 31</output></label>
+            <input type="range" id="sim-day" min="1" max="31" step="1" value="19">
+          </div>
+          <p class="sim-hint">Try the demo’s numbers: spend slips past the limit while the month is only two-thirds done.</p>
+        </div>
+        <div class="mock" aria-live="polite">
+          <div class="mock-top">
+            <h3>October 2026</h3>
+            <span class="pill bad" id="sim-pill">Over budget</span>
+          </div>
+          <p class="mock-sub">workspace demo · alert at <span id="sim-alert-note">80%</span></p>
+          <div class="mock-amount" id="sim-amount">$3,297.56 <small>of $3,150</small></div>
+          <div class="bar"><i id="sim-bar"></i></div>
+          <div class="bar-labels"><span id="sim-pct">104.7% used</span><span id="sim-left">Remaining $0.00</span></div>
+          <div class="mock-grid">
+            <div class="mock-cell"><span>Expected by today</span><strong id="sim-expected">$1,930.65</strong></div>
+            <div class="mock-cell"><span>Actual</span><strong id="sim-actual">$3,297.56</strong></div>
+            <div class="mock-cell"><span>Pace</span><strong id="sim-pace">Ahead $1,366.91</strong></div>
+          </div>
+          <p class="pace-note" id="sim-note"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow">Under the hood</p>
+        <h2>A small number of boundaries, held consistently.</h2>
+        <p class="lede">The interface is approachable. The path underneath it is deliberately boring: one guarded request pipeline, one tenant boundary, one source of financial truth.</p>
+      </div>
+      <div class="flow reveal">
+        <div class="flow-step"><b>1. Edge</b><span>Caddy terminates TLS, sets HSTS, forwards to the app.</span></div>
+        <div class="flow-step"><b>2. Web</b><span>nginx serves the React SPA and proxies <code>/api</code>.</span></div>
+        <div class="flow-step"><b>3. API</b><span>FastAPI authenticates, rate-limits and pins the tenant.</span></div>
+        <div class="flow-step"><b>4. Data</b><span>PostgreSQL enforces RLS row by row, even on a missed filter.</span></div>
+      </div>
+      <p class="flow-note reveal">Every tenant transaction starts with <code>set_config('app.current_tenant_id', …)</code>. Money is <code>NUMERIC(14,2)</code>, aggregated in SQL and formatted only at the edge. Access tokens last 15 minutes; refresh tokens rotate. The rate limiter is in-process — one API replica by default, or move it to Redis before scaling out.</p>
+    </div>
+  </section>
+
+  <section id="learn" style="padding-top:20px">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow">Scratch → pro</p>
+        <h2>Four steps from bystander to operator.</h2>
+        <p class="lede">Read one step, mark it done, and keep the progress in this browser. No account, no email, no tracking.</p>
+      </div>
+      <div class="learn-head reveal">
+        <div class="learn-progress" role="progressbar" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" aria-label="Learning path progress"><i id="learn-bar"></i></div>
+        <span class="learn-count" id="learn-count">0 of 4 complete</span>
+        <button class="learn-reset" id="learn-reset" type="button">Reset progress</button>
+      </div>
+      <div class="path">
+        <article class="path-step reveal" data-step="1">
+          <span class="path-num">Step 01</span>
+          <h3>Follow one month</h3>
+          <p>Track → budget → review. You can explain why utilisation, pace and remaining are three different numbers.</p>
+          <a href="#tour">Open the tour</a>
+          <button class="path-done" type="button" aria-pressed="false">Mark done</button>
+        </article>
+        <article class="path-step reveal" data-step="2">
+          <span class="path-num">Step 02</span>
+          <h3>Find the boundary</h3>
+          <p>RLS, a non-superuser role and a tenant pinned per transaction. You can explain what stops a missed WHERE clause.</p>
+          <a href="#security">See the isolation model</a>
+          <button class="path-done" type="button" aria-pressed="false">Mark done</button>
+        </article>
+        <article class="path-step reveal" data-step="3">
+          <span class="path-num">Step 03</span>
+          <h3>Make the case</h3>
+          <p>No seat fees, one server, four roles. You can explain the commercial case without hype or invented savings.</p>
+          <a href="#buyers">Read the buyer view</a>
+          <button class="path-done" type="button" aria-pressed="false">Mark done</button>
+        </article>
+        <article class="path-step reveal" data-step="4">
+          <span class="path-num">Step 04</span>
+          <h3>Run the system</h3>
+          <p>Docker, CSV, health checks, backups. You can explain what you operate — and what is deliberately out of scope.</p>
+          <a href="#get-started">Open the runbook</a>
+          <button class="path-done" type="button" aria-pressed="false">Mark done</button>
+        </article>
+      </div>
+      <p class="path-ready" id="path-ready">All four steps done. <a href="#quiz">Take the ten-question check →</a></p>
+    </div>
+  </section>
+
+  <section id="quiz" style="padding-top:20px">
+    <div class="wrap quiz-wrap">
+      <div class="quiz-side reveal">
+        <p class="eyebrow">Check yourself</p>
+        <h2 style="font-size:clamp(1.8rem,3.2vw,2.6rem)">Ten questions. One working mental model.</h2>
+        <p class="lede" style="margin-top:14px">Enough to explain the product, the isolation model and the money rules to someone else — without hand-waving.</p>
+        <ul class="rank-list">
+          <li><b>0–4</b><span>Scratch — the tour above is your friend.</span></li>
+          <li><b>5–7</b><span>Budgeter — you have the shape of it.</span></li>
+          <li><b>8–10</b><span>Pro — you can defend the design.</span></li>
+        </ul>
+      </div>
+      <div class="quiz reveal" id="quiz-card">
+        <div class="quiz-progress"><i id="quiz-bar"></i></div>
+        <div class="quiz-meta"><span id="quiz-count">Question 1 of 10</span><span id="quiz-score">Score 0</span></div>
+        <div id="quiz-body"></div>
+        <noscript><p class="why">The quiz needs JavaScript. The product tour above and the FAQ below cover the same ground.</p></noscript>
+      </div>
+    </div>
+  </section>
+
+  <section id="gallery" style="padding-top:20px">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow">Screens</p>
+        <h2>Every surface, light and dark.</h2>
+        <p class="lede">Click any screen to enlarge it.</p>
+      </div>
+      <div class="gallery">
+        <figure class="shot reveal" tabindex="0" role="button" aria-label="Enlarge dashboard screenshot" data-full="./assets/shot-dashboard.png" data-caption="Dashboard — the month at a glance, with status, pace and category shares.">
+          <img src="./assets/shot-dashboard.png" loading="lazy" alt="Dashboard, light theme">
+          <figcaption>Dashboard · light</figcaption>
+        </figure>
+        <figure class="shot reveal" tabindex="0" role="button" aria-label="Enlarge expenses screenshot" data-full="./assets/shot-expenses.png" data-caption="Expenses — search, year, month and category filters, pagination and CSV tools.">
+          <img src="./assets/shot-expenses.png" loading="lazy" alt="Expenses page">
+          <figcaption>Expenses</figcaption>
+        </figure>
+        <figure class="shot reveal" tabindex="0" role="button" aria-label="Enlarge budgets screenshot" data-full="./assets/shot-budgets.png" data-caption="Budgets — one limit per month, alert threshold and a spending-pace line.">
+          <img src="./assets/shot-budgets.png" loading="lazy" alt="Budgets page">
+          <figcaption>Budgets</figcaption>
+        </figure>
+        <figure class="shot reveal" tabindex="0" role="button" aria-label="Enlarge reports screenshot" data-full="./assets/shot-reports.png" data-caption="Reports — category breakdown, budget performance and a six-month trend.">
+          <img src="./assets/shot-reports.png" loading="lazy" alt="Reports page">
+          <figcaption>Reports</figcaption>
+        </figure>
+        <figure class="shot reveal" tabindex="0" role="button" aria-label="Enlarge income screenshot" data-full="./assets/shot-income.png" data-caption="Income — deposits sit beside expenses so the month shows money in as well as out.">
+          <img src="./assets/shot-income.png" loading="lazy" alt="Income page">
+          <figcaption>Income</figcaption>
+        </figure>
+        <figure class="shot reveal" tabindex="0" role="button" aria-label="Enlarge members screenshot" data-full="./assets/shot-settings-members.png" data-caption="Members — individual logins, four roles and single-use, email-bound invites.">
+          <img src="./assets/shot-settings-members.png" loading="lazy" alt="Members and roles settings">
+          <figcaption>Members &amp; roles</figcaption>
+        </figure>
+        <figure class="shot reveal" tabindex="0" role="button" aria-label="Enlarge branded sign-in screenshot" data-full="./assets/shot-login-branded.png" data-caption="Branded sign-in — the workspace name and accent colour are applied before authentication.">
+          <img src="./assets/shot-login-branded.png" loading="lazy" alt="Branded sign-in page">
+          <figcaption>Branded sign-in</figcaption>
+        </figure>
+        <figure class="shot reveal" tabindex="0" role="button" aria-label="Enlarge dark dashboard screenshot" data-full="./assets/shot-dashboard-dark.png" data-caption="Dark mode — semantic status colours and text labels stay readable.">
+          <img src="./assets/shot-dashboard-dark.png" loading="lazy" alt="Dashboard, dark theme">
+          <figcaption>Dashboard · dark</figcaption>
+        </figure>
+        <figure class="shot tall reveal" tabindex="0" role="button" aria-label="Enlarge mobile screenshot" data-full="./assets/shot-dashboard-mobile.png" data-caption="Mobile — the dashboard stacks cleanly at 390 px; the drawer handles navigation.">
+          <img src="./assets/shot-dashboard-mobile.png" loading="lazy" alt="Dashboard on a phone">
+          <figcaption>Dashboard · mobile</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" style="padding-top:30px">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow">Questions</p>
+        <h2>The things people ask before they run it.</h2>
+      </div>
+      <div class="faq">
+        <details class="reveal">
+          <summary>Do I need any cloud accounts or API keys?</summary>
+          <p>No. Docker Compose starts PostgreSQL, the API, the web app and an edge proxy. There are no external analytics, AI calls or payment services in the stack.</p>
+        </details>
+        <details class="reveal">
+          <summary>How exactly is one workspace kept out of another?</summary>
+          <p>Tenant tables use PostgreSQL row-level security, forced for the application role. Each request pins the current tenant inside its transaction, and the app connects as a non-superuser. Cross-tenant reads return 404 or empty sets, and the isolation suite probes this directly, including raw SQL.</p>
+        </details>
+        <details class="reveal">
+          <summary>Can a partner or teammate have their own login?</summary>
+          <p>Yes. Owners and admins create an invite link with a role; the invited person registers with that link and their own email. The invite is single-use and bound to the email address.</p>
+        </details>
+        <details class="reveal">
+          <summary>What do the four roles actually allow?</summary>
+          <p>Owners and admins manage workspace settings and members. Members manage money data. Viewers can read everything but every write path is disabled in the UI and rejected by the API. The owner cannot be removed or re-roled.</p>
+        </details>
+        <details class="reveal">
+          <summary>What happens if I import the same file twice?</summary>
+          <p>With “skip duplicates” on (the default), rows matching an existing transaction — same kind, date, amount and note — are counted as skipped instead of inserted. The result view shows added, skipped and failed counts.</p>
+        </details>
+        <details class="reveal">
+          <summary>Can each workspace use a different currency and language?</summary>
+          <p>Yes. Currency, locale and timezone are per workspace and are stored with the tenant. Amounts are stored as exact decimals and formatted in the browser, so switching from dollars to euros changes presentation, not the underlying records.</p>
+        </details>
+        <details class="reveal">
+          <summary>Is this production-ready?</summary>
+          <p>It is a hardened, self-hosted build with tested isolation, rotating sessions, per-tenant rate limits, TLS at the edge and CI. Before real use, change every secret, set <code>ENVIRONMENT=production</code>, run one API replica (or move the limiter to Redis) and back up the database volume.</p>
+        </details>
+        <details class="reveal">
+          <summary>Why is there also a Python CLI?</summary>
+          <p><code>cli/budget_system.py</code> is a dependency-free tutorial version of the same idea. It is a gentle way to read plain classes and menus before exploring the full SaaS.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="get" id="get-started">
+    <div class="wrap">
+      <div class="get-panel reveal">
+        <div>
+          <p class="eyebrow">Run it</p>
+          <h2>Two minutes from clone to a working workspace.</h2>
+          <p style="margin-top:14px">Docker is the only prerequisite. The seeded demo gives you a realistic eight-month story; register your own workspace when you are ready to make it yours.</p>
+          <div class="pages-note">Publishing this page? Use GitHub Pages with the <code>/docs</code> folder — the included <code>.nojekyll</code> keeps the assets working. <a href="../README.md">Read the README</a>.</div>
+        </div>
+        <div>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span>budget-management-saas</span>
+            </div>
+            <pre><span class="cmt"># start everything</span>
+<span class="cmd">docker compose up --build -d</span>
+
+<span class="cmt"># reset the demo story any time</span>
+<span class="cmd">docker compose exec backend python -m scripts.seed_demo --force</span></pre>
+          </div>
+          <button class="copy" type="button" data-copy="docker compose up --build -d">Copy the start command</button>
+          <div class="cred">
+            <div><span>Workspace</span><code>demo</code></div>
+            <div><span>Password</span><code>Demo@12345</code></div>
+            <div><span>Alex · owner</span><code>demo@example.com</code></div>
+            <div><span>Maya · member</span><code>maya@example.com</code></div>
+          </div>
+          <p class="pages-note">Then open <a href="http://localhost">http://localhost</a>. No API keys, no sign-up, no external services.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <a class="brand" href="#top" style="font-size:.95rem">
+      <svg aria-hidden="true" style="width:24px;height:24px"><use href="#i-mark"/></svg>
+      <span>Budgetary</span>
+    </a>
+    <div class="foot-links">
+      <a href="../README.md">README</a>
+      <a href="./BUSINESS-CASE.md">Business case</a>
+      <a href="./ARCHITECTURE.md">Architecture</a>
+      <a href="./MULTI-TENANCY.md">Multi-tenancy</a>
+      <a href="../LICENSE">MIT License</a>
+    </div>
+    <span>A complete multi-tenant budgeting workspace. No trackers on this page.</span>
+  </div>
+</footer>
+
+<dialog id="lightbox" aria-label="Screenshot viewer">
+  <div class="lightbox-inner">
+    <div class="lightbox-top">
+      <span id="lb-count">1 / 9</span>
+      <div class="lightbox-nav">
+        <button class="icon-btn" type="button" id="lb-prev" aria-label="Previous screenshot" style="width:34px;height:34px">←</button>
+        <button class="icon-btn" type="button" id="lb-next" aria-label="Next screenshot" style="width:34px;height:34px">→</button>
+        <button class="icon-btn" type="button" id="lb-close" aria-label="Close viewer" style="width:34px;height:34px">×</button>
+      </div>
+    </div>
+    <img class="lightbox-img" id="lb-img" src="" alt="">
+    <div class="lightbox-caption" id="lb-caption"></div>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- theme ---------- */
+  var root = document.documentElement;
+  var themeBtn = document.getElementById("theme");
+  var themeIcon = document.getElementById("theme-icon");
+  function paintTheme() {
+    var dark = root.dataset.theme === "dark";
+    themeBtn.setAttribute("aria-pressed", String(dark));
+    themeBtn.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+    themeIcon.setAttribute("href", dark ? "#i-moon" : "#i-sun");
+  }
+  paintTheme();
+  themeBtn.addEventListener("click", function () {
+    root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+    try { localStorage.setItem("budgetary-preview-theme", root.dataset.theme); } catch (e) {}
+    paintTheme();
+  });
+
+  /* ---------- scroll reveal ---------- */
+  var reveal = document.querySelectorAll(".reveal");
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) { entry.target.classList.add("in"); io.unobserve(entry.target); }
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+    reveal.forEach(function (el) { io.observe(el); });
+  } else {
+    reveal.forEach(function (el) { el.classList.add("in"); });
+  }
+
+  /* ---------- simulator ---------- */
+  var money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+  var money2 = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  var sim = {
+    budget: document.getElementById("sim-budget"),
+    spent: document.getElementById("sim-spent"),
+    alert: document.getElementById("sim-alert"),
+    day: document.getElementById("sim-day")
+  };
+  var out = {
+    budget: document.getElementById("out-budget"),
+    spent: document.getElementById("out-spent"),
+    alert: document.getElementById("out-alert"),
+    day: document.getElementById("out-day"),
+    pill: document.getElementById("sim-pill"),
+    alertNote: document.getElementById("sim-alert-note"),
+    amount: document.getElementById("sim-amount"),
+    bar: document.getElementById("sim-bar"),
+    pct: document.getElementById("sim-pct"),
+    left: document.getElementById("sim-left"),
+    expected: document.getElementById("sim-expected"),
+    actual: document.getElementById("sim-actual"),
+    pace: document.getElementById("sim-pace"),
+    note: document.getElementById("sim-note")
+  };
+  function simulate() {
+    var budget = Number(sim.budget.value);
+    var spent = Number(sim.spent.value);
+    var alert = Number(sim.alert.value);
+    var day = Number(sim.day.value);
+    var ratio = budget > 0 ? spent / budget : 0;
+    var expected = budget * day / 31;
+    var pace = spent - expected;
+    var status = ratio >= 1 ? "bad" : (ratio * 100 >= alert ? "warn" : "good");
+    var label = status === "bad" ? "Over budget" : (status === "warn" ? "Approaching" : "On track");
+
+    out.budget.value = money.format(budget);
+    out.spent.value = money.format(spent);
+    out.alert.value = alert + "%";
+    out.day.value = day + " of 31";
+    out.pill.className = "pill " + status;
+    out.pill.textContent = label;
+    out.alertNote.textContent = alert + "%";
+    out.amount.innerHTML = money2.format(spent) + ' <small>of ' + money.format(budget) + "</small>";
+    out.bar.style.width = Math.min(ratio * 100, 100) + "%";
+    out.bar.style.background = status === "bad" ? "var(--bad)" : (status === "warn" ? "var(--warn)" : "var(--good)");
+    out.pct.textContent = (ratio * 100).toFixed(1) + "% used";
+    out.left.textContent = "Remaining " + money2.format(Math.max(budget - spent, 0));
+    out.expected.textContent = money2.format(expected);
+    out.actual.textContent = money2.format(spent);
+    out.pace.textContent = (pace >= 0 ? "Ahead " : "Behind ") + money2.format(Math.abs(pace));
+
+    if (status === "bad") {
+      out.note.innerHTML = "You are <b>" + money2.format(spent - budget) + "</b> over the limit with " + (31 - day) + " days left. The pace line shows spending " + (pace >= 0 ? "ahead of" : "behind") + " the month’s rhythm.";
+    } else if (status === "warn") {
+      out.note.innerHTML = "You have used <b>" + (ratio * 100).toFixed(1) + "%</b> of the budget and crossed the " + alert + "% alert threshold. " + (31 - day) + " days remain.";
+    } else {
+      out.note.innerHTML = "You are <b>" + money2.format(budget - spent) + "</b> under the limit and below the " + alert + "% alert threshold. Pace is " + (pace >= 0 ? "ahead of" : "behind") + " the month’s rhythm.";
+    }
+  }
+  Object.keys(sim).forEach(function (key) { sim[key].addEventListener("input", simulate); });
+  simulate();
+
+  /* ---------- buyer calculator ---------- */
+  var calc = {
+    people: document.getElementById("calc-people"),
+    hours: document.getElementById("calc-hours"),
+    rate: document.getElementById("calc-rate")
+  };
+  var calcOut = {
+    people: document.getElementById("calc-people-out"),
+    hours: document.getElementById("calc-hours-out"),
+    rate: document.getElementById("calc-rate-out"),
+    totalHours: document.getElementById("calc-total-hours"),
+    monthly: document.getElementById("calc-monthly"),
+    annual: document.getElementById("calc-annual")
+  };
+  var calcMoney = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  function calculate() {
+    var people = Number(calc.people.value);
+    var hours = Number(calc.hours.value);
+    var rate = Number(calc.rate.value);
+    var totalHours = people * hours;
+    var monthly = totalHours * rate;
+    calcOut.people.value = people;
+    calcOut.hours.value = hours;
+    calcOut.rate.value = calcMoney.format(rate);
+    calcOut.totalHours.textContent = totalHours;
+    calcOut.monthly.textContent = calcMoney.format(monthly);
+    calcOut.annual.textContent = calcMoney.format(monthly * 12);
+  }
+  Object.keys(calc).forEach(function (key) { calc[key].addEventListener("input", calculate); });
+  calculate();
+
+  /* ---------- learning path ---------- */
+  var pathSteps = Array.prototype.slice.call(document.querySelectorAll(".path-step"));
+  var learnBar = document.getElementById("learn-bar");
+  var learnCount = document.getElementById("learn-count");
+  var learnReset = document.getElementById("learn-reset");
+  var pathReady = document.getElementById("path-ready");
+  var learnProgress = document.getElementById("learn-bar").parentElement;
+  var learnKey = "budgetary-learn-progress";
+  function readLearn() {
+    try {
+      var raw = localStorage.getItem(learnKey);
+      return raw ? raw.split(",").filter(Boolean) : [];
+    } catch (e) { return []; }
+  }
+  function paintLearn(done) {
+    pathSteps.forEach(function (step) {
+      var isDone = done.indexOf(step.dataset.step) !== -1;
+      step.classList.toggle("done", isDone);
+      var button = step.querySelector(".path-done");
+      button.setAttribute("aria-pressed", String(isDone));
+      button.textContent = isDone ? "Done ✓" : "Mark done";
+    });
+    learnBar.style.width = (done.length / pathSteps.length * 100) + "%";
+    learnCount.textContent = done.length + " of " + pathSteps.length + " complete";
+    learnProgress.setAttribute("aria-valuenow", String(done.length));
+    pathReady.classList.toggle("show", done.length === pathSteps.length);
+  }
+  var learnDone = readLearn();
+  paintLearn(learnDone);
+  pathSteps.forEach(function (step) {
+    step.querySelector(".path-done").addEventListener("click", function () {
+      var id = step.dataset.step;
+      var index = learnDone.indexOf(id);
+      if (index === -1) { learnDone.push(id); } else { learnDone.splice(index, 1); }
+      try { localStorage.setItem(learnKey, learnDone.join(",")); } catch (e) {}
+      paintLearn(learnDone);
+    });
+  });
+  learnReset.addEventListener("click", function () {
+    learnDone = [];
+    try { localStorage.removeItem(learnKey); } catch (e) {}
+    paintLearn(learnDone);
+  });
+
+  /* ---------- quiz ---------- */
+  var questions = [
+    {
+      q: "What does “multi-tenant” mean in Budgetary?",
+      options: [
+        "One shared login for every customer, with a role for each person",
+        "One running application serving many isolated workspaces",
+        "A separate copy of the codebase for every customer",
+        "Several databases hidden behind a single admin screen"
+      ],
+      answer: 1,
+      why: "A tenant is one workspace. One deployment serves many tenants while each workspace keeps its own people, data and settings."
+    },
+    {
+      q: "A query forgets its WHERE clause. What stops workspace A from reading workspace B’s rows?",
+      options: [
+        "The React client hides rows it should not show",
+        "A middleware rewrites every query before it reaches the database",
+        "PostgreSQL row-level security, pinned to the current tenant per transaction",
+        "The API returns 403 for any query without a tenant filter"
+      ],
+      answer: 2,
+      why: "RLS is the backstop. The transaction pins app.current_tenant_id and the database filters rows, even when application code misses a filter. The app role cannot bypass RLS."
+    },
+    {
+      q: "Which role is read-only across the product?",
+      options: ["Member", "Admin", "Viewer", "Owner"],
+      answer: 2,
+      why: "Viewers can read everything, but write paths are hidden in the UI and rejected by the API. Members can manage money data; owners and admins also manage the workspace."
+    },
+    {
+      q: "October’s budget is $3,150 and $3,297.56 is spent. What does the dashboard show?",
+      options: [
+        "On track, because the month is not over",
+        "Over budget at 104.7%, with the remaining balance clamped to $0",
+        "Approaching, until the last day of the month",
+        "A negative budget that blocks new expenses"
+      ],
+      answer: 1,
+      why: "Utilisation above 100% is over budget. Remaining is clamped to $0 rather than shown as a negative, while the alert explains exactly how far over the month is."
+    },
+    {
+      q: "How does a second person get their own login for the same workspace?",
+      options: [
+        "They use the owner’s email and password",
+        "An owner or admin sends a single-use, email-bound invite link",
+        "They create a second workspace and merge it later",
+        "The owner creates a viewer account with a shared password"
+      ],
+      answer: 1,
+      why: "Invites are created with a role, bound to the invited email, and single-use. Accepting the link registers a normal account inside the same tenant."
+    },
+    {
+      q: "You import the same CSV twice with “skip duplicates” enabled. What happens?",
+      options: [
+        "Every row is inserted again",
+        "The import fails because the file was already used",
+        "Matching rows are counted as skipped, not inserted",
+        "Only income rows are skipped; expenses are inserted"
+      ],
+      answer: 2,
+      why: "A row matching an existing transaction — same kind, date, amount and note — is skipped. The summary reports added, skipped and failed counts separately."
+    },
+    {
+      q: "Why can the sign-in page show “Demo Budget” before anyone authenticates?",
+      options: [
+        "The browser stores the whole tenant record in localStorage",
+        "A public slug endpoint returns only safe branding fields such as display name and accent colour",
+        "The login request is sent with the password attached",
+        "The SPA ships one build per workspace"
+      ],
+      answer: 1,
+      why: "The public endpoint exposes branding only. The accent is validated as a hex colour before it is applied, so tenant input cannot inject CSS."
+    },
+    {
+      q: "What is the “pace” line on the Budgets page telling you?",
+      options: [
+        "How fast the page loads",
+        "The difference between spending so far and the amount expected by today",
+        "The interest rate on remaining budget",
+        "How many days until the budget resets"
+      ],
+      answer: 1,
+      why: "Expected spend is the budget prorated by the day of the month. The pace line turns that into “$1,095 behind pace” or “$1,366 ahead”, which is easier to act on."
+    },
+    {
+      q: "Which combination best describes refresh-token handling?",
+      options: [
+        "Long-lived, stored in localStorage, reused until logout",
+        "Rotated on every use, hashed at rest, delivered in an HttpOnly cookie, reused tokens revoke the family",
+        "Stored in the JWT payload so the server can look it up",
+        "Emailed to the user and pasted into each request"
+      ],
+      answer: 1,
+      why: "Rotation plus reuse detection limits the damage of a stolen token. Access tokens stay short-lived in memory; refresh tokens are not readable by JavaScript."
+    },
+    {
+      q: "Why is money stored as NUMERIC(14,2) and aggregated in SQL?",
+      options: [
+        "To make the frontend bundle smaller",
+        "Because JavaScript cannot add decimals",
+        "To avoid floating-point drift and keep every report consistent before formatting",
+        "Because PostgreSQL requires it for currency columns"
+      ],
+      answer: 2,
+      why: "Exact decimals and server-side aggregation keep totals trustworthy. The browser formats the final value with Intl.NumberFormat for the workspace’s currency and locale."
+    }
+  ];
+
+  var quiz = {
+    index: 0,
+    score: 0,
+    answered: false,
+    picked: -1,
+    misses: [],
+    body: document.getElementById("quiz-body"),
+    bar: document.getElementById("quiz-bar"),
+    count: document.getElementById("quiz-count"),
+    scoreEl: document.getElementById("quiz-score")
+  };
+
+  function esc(text) {
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function renderQuestion() {
+    var item = questions[quiz.index];
+    quiz.answered = false;
+    quiz.picked = -1;
+    quiz.count.textContent = "Question " + (quiz.index + 1) + " of " + questions.length;
+    quiz.scoreEl.textContent = "Score " + quiz.score;
+    quiz.bar.style.width = ((quiz.index) / questions.length * 100) + "%";
+    var html = '<h3 id="q-title">' + esc(item.q) + "</h3><div class=\"options\" role=\"group\" aria-labelledby=\"q-title\">";
+    item.options.forEach(function (option, i) {
+      html += '<button class="option" type="button" data-index="' + i + '">' + esc(option) + "</button>";
+    });
+    html += '</div><div id="why-slot"></div><div class="quiz-actions" id="quiz-actions"></div>';
+    quiz.body.innerHTML = html;
+    quiz.body.querySelectorAll(".option").forEach(function (button) {
+      button.addEventListener("click", function () { pick(Number(button.dataset.index)); });
+    });
+  }
+
+  function pick(index) {
+    if (quiz.answered) return;
+    quiz.answered = true;
+    quiz.picked = index;
+    var item = questions[quiz.index];
+    var correct = index === item.answer;
+    if (correct) { quiz.score += 1; } else { quiz.misses.push({ q: item.q, a: item.options[item.answer] }); }
+    quiz.scoreEl.textContent = "Score " + quiz.score;
+    quiz.body.querySelectorAll(".option").forEach(function (button, i) {
+      button.disabled = true;
+      if (i === item.answer) button.classList.add("correct");
+      else if (i === index) button.classList.add("wrong");
+      else button.classList.add("dim");
+    });
+    document.getElementById("why-slot").innerHTML =
+      '<div class="why"><b>' + (correct ? "Correct." : "Not quite.") + "</b> " + esc(item.why) + "</div>";
+    var actions = document.getElementById("quiz-actions");
+    var next = document.createElement("button");
+    next.type = "button";
+    next.className = "btn btn-primary btn-sm";
+    next.textContent = quiz.index === questions.length - 1 ? "See result" : "Next question →";
+    next.addEventListener("click", advance);
+    actions.appendChild(next);
+    next.focus({ preventScroll: true });
+  }
+
+  function advance() {
+    if (quiz.index < questions.length - 1) {
+      quiz.index += 1;
+      renderQuestion();
+    } else {
+      renderResult();
+    }
+  }
+
+  function renderResult() {
+    var total = questions.length;
+    var pct = Math.round(quiz.score / total * 100);
+    var rank = quiz.score >= 8 ? "Pro" : (quiz.score >= 5 ? "Budgeter" : "Scratch");
+    var blurb = quiz.score >= 8
+      ? "You can explain the isolation model, the money rules and the product story. You now know more than most interview candidates."
+      : (quiz.score >= 5
+        ? "You have the shape of it. Skim the three answers in the beginner guide, then try again — the last two questions are where most people pause."
+        : "The product tour above is your shortcut. Read the vocabulary and the “what happens when you click Add expense” walkthrough, then retake this.");
+    quiz.count.textContent = "Result";
+    quiz.scoreEl.textContent = quiz.score + " / " + total;
+    quiz.bar.style.width = "100%";
+    var review = "";
+    if (quiz.misses.length) {
+      review = '<div class="review"><b style="font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">Worth revisiting</b>';
+      quiz.misses.forEach(function (miss) {
+        review += "<div><b>" + esc(miss.q) + "</b><br>→ " + esc(miss.a) + "</div>";
+      });
+      review += "</div>";
+    }
+    quiz.body.innerHTML =
+      '<div class="result">' +
+        '<div class="ring" style="--score:' + pct + '"><strong>' + quiz.score + '<small>/' + total + "</small></strong></div>" +
+        "<h3>" + rank + "</h3>" +
+        "<p>" + esc(blurb) + "</p>" +
+        review +
+        '<div class="quiz-actions" style="justify-content:center"><button class="btn btn-primary btn-sm" type="button" id="quiz-restart">Try again</button></div>' +
+      "</div>";
+    document.getElementById("quiz-restart").addEventListener("click", function () {
+      quiz.index = 0; quiz.score = 0; quiz.misses = [];
+      renderQuestion();
+    });
+  }
+
+  renderQuestion();
+
+  /* ---------- gallery lightbox ---------- */
+  var shots = Array.prototype.slice.call(document.querySelectorAll(".shot"));
+  var dialog = document.getElementById("lightbox");
+  var lbImg = document.getElementById("lb-img");
+  var lbCaption = document.getElementById("lb-caption");
+  var lbCount = document.getElementById("lb-count");
+  var current = 0;
+
+  function showShot(index) {
+    current = (index + shots.length) % shots.length;
+    var shot = shots[current];
+    lbImg.src = shot.dataset.full;
+    lbImg.alt = shot.querySelector("img").alt;
+    lbCaption.textContent = shot.dataset.caption;
+    lbCount.textContent = (current + 1) + " / " + shots.length;
+  }
+  function openShot(index) {
+    showShot(index);
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
+  }
+  shots.forEach(function (shot, i) {
+    shot.addEventListener("click", function () { openShot(i); });
+    shot.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openShot(i); }
+    });
+  });
+  document.getElementById("lb-close").addEventListener("click", function () { dialog.close(); });
+  document.getElementById("lb-prev").addEventListener("click", function () { showShot(current - 1); });
+  document.getElementById("lb-next").addEventListener("click", function () { showShot(current + 1); });
+  dialog.addEventListener("click", function (event) {
+    if (event.target === dialog) dialog.close();
+  });
+  document.addEventListener("keydown", function (event) {
+    if (!dialog.open) return;
+    if (event.key === "ArrowLeft") { event.preventDefault(); showShot(current - 1); }
+    if (event.key === "ArrowRight") { event.preventDefault(); showShot(current + 1); }
+  });
+
+  /* ---------- copy command ---------- */
+  document.querySelectorAll(".copy").forEach(function (button) {
+    button.addEventListener("click", function () {
+      var text = button.dataset.copy;
+      function done() {
+        var original = button.textContent;
+        button.textContent = "Copied ✓";
+        setTimeout(function () { button.textContent = original; }, 1600);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(function () {});
+      } else {
+        var area = document.createElement("textarea");
+        area.value = text; document.body.appendChild(area); area.select();
+        try { document.execCommand("copy"); done(); } catch (e) {}
+        document.body.removeChild(area);
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>
