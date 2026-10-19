@@ -9,7 +9,9 @@
 
 ![Budgetary demo — dashboard, expenses, budgets, reports, settings and dark mode](./docs/assets/demo.gif)
 
-**[Watch the 20-second demo](./docs/assets/demo.mp4)** · **[Try the interactive tour](#publish-the-interactive-tour)** · **[Quick start](#quick-start)** · **[For buyers](#for-buyers)** · **[Beginner guide](#-beginner-guide--read-this-and-you-are-a-professional)**
+> 🌐 **Live preview:** [`/`](https://m0-ar.github.io/budget-management-saas/) · [`/preview.html`](https://m0-ar.github.io/budget-management-saas/preview.html) · [`/docs/preview.html`](https://m0-ar.github.io/budget-management-saas/docs/preview.html) — all three open the same interactive tour in the browser.
+
+**[Watch the 20-second demo](./docs/assets/demo.mp4)** · **[Try the interactive tour](https://m0-ar.github.io/budget-management-saas/preview.html)** · **[Quick start](#quick-start)** · **[For buyers](#for-buyers)** · **[Beginner guide](#-beginner-guide--read-this-and-you-are-a-professional)**
 
 ---
 
@@ -66,6 +68,7 @@ commands if you prefer shortcuts.
 
 > **Prefer to look before you install?** The screenshots below show the real
 > product, and the self-contained tour in [`docs/preview.html`](./docs/preview.html)
+> ([open it live](https://m0-ar.github.io/budget-management-saas/preview.html))
 > adds a budget simulator, a buyer calculator and a ten-question
 > scratch-to-pro quiz. See [Publish the interactive tour](#publish-the-interactive-tour).
 
@@ -431,31 +434,41 @@ Reading the failure paths is the fastest way to understand the system.
 ### Publish the interactive tour
 
 The tour is a single HTML file with no build step and no external JavaScript.
-`docs/index.html` opens `docs/preview.html`, and the `docs` folder is ready to
-publish as a GitHub Pages site.
+The canonical file is `docs/preview.html`. The repository root also carries a
+mirror, `preview.html`, that points at `docs/assets/`, plus `index.html` (a
+redirect to the mirror) and `.nojekyll`. Publishing from the root folder is
+what makes every URL below serve the same tour in the browser:
+
+| Link | What it serves |
+| --- | --- |
+| [`/`](https://m0-ar.github.io/budget-management-saas/) | root `index.html`, which redirects to `preview.html` |
+| [`/preview.html`](https://m0-ar.github.io/budget-management-saas/preview.html) | the root mirror of the tour |
+| [`/docs/preview.html`](https://m0-ar.github.io/budget-management-saas/docs/preview.html) | the canonical `docs/` copy |
+
+This repository is currently published from **`/ (root)`**, which is why all
+three links work. To reproduce it:
 
 1. Push the repository to GitHub.
 2. Open **Settings → Pages**.
 3. Under **Build and deployment → Source**, choose **Deploy from a branch**.
-4. Select your branch, choose the **`/docs`** folder, and click **Save**.
-5. Wait for the Pages build, then open
-   `https://<your-user>.github.io/<your-repo>/`.
+4. Select your branch and the **`/ (root)`** folder, then click **Save**.
+5. Wait for the Pages build, then open any of the links above.
 
-The root URL opens the tour; `preview.html` is the same page directly. The
-included `.nojekyll` file keeps asset paths working, and site links and assets
-are relative, so the site works from a project subpath.
+If you prefer to publish only the `docs` folder, choose **`/docs`** instead:
+then `/` and `/preview.html` work, while `/docs/preview.html` is expected to
+404. The links above assume the recommended root source.
 
 To preview locally before publishing:
 
 ```bash
-cd docs
 python3 -m http.server 8000
-# open http://localhost:8000
+# open http://localhost:8000/preview.html
 ```
 
-If the root 404s, confirm the Pages source is the `/docs` folder and that
-`docs/index.html` exists. If images 404, confirm the `docs/assets/` folder was
-committed. Pages sites are public even when the repository is private.
+If the root 404s, confirm the Pages source is **`/ (root)`** and that the
+committed root files (`index.html`, `preview.html`, `.nojekyll`) exist. If
+images or the video 404, confirm `docs/assets/` was committed. Pages sites are
+public even when the repository is private.
 
 ---
 
